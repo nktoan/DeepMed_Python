@@ -41,7 +41,13 @@ class DeepMed:
             hyper=DeepMed_cv(self.y,self.d,self.m,self.x,self.method,self.hyper_grid,self.epochs,self.batch_size)
         else:
             hyper = np.empty(shape = (2,30))
-        mbin = 1*((len(np.unique(self.m))==2) & (min(self.m)==0) & (max(self.m)==1))
+        
+        mbin = 1 * (
+          (len(np.unique(self.m)) == 2) &
+          (np.min(self.m) == 0) &
+         (np.max(self.m) == 1)
+        )
+        #mbin = 1 * ((len(np.unique(self.m)) == 2) & (np.min(self.m) == 0) &(np.max(self.m) == 1))
         if mbin==0:
             temp =DeepMed_cont(self.y,self.d,self.m,self.x,self.method,hyper,self.trim)
         else:

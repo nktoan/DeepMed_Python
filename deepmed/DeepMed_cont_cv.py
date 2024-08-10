@@ -8,7 +8,14 @@ from deepmed.gbm import gbm_out
 from deepmed.rf import rf_out
 from deepmed.lasso import ls_out
 def flatten(l):
-    return [item for sublist in l for item in sublist]
+    # Check if l is a list of lists
+    if isinstance(l, list):
+        return [item for sublist in l for item in sublist]
+    # If l is a numpy array, just return it as-is
+    elif isinstance(l, np.ndarray):
+        return l.ravel()  # or use l.flatten()
+    else:
+        return l  # Return l as is if it's neither a list nor numpy array
 
 def DeepMed_cont_cv(y,d,m,x,method,hyper_grid,epochs,batch_size):
     if method=='DNN':
@@ -90,7 +97,7 @@ def DeepMed_cont_cv(y,d,m,x,method,hyper_grid,epochs,batch_size):
                 pool.join()
                 outi = flatten(outi)
                 outi = pd.DataFrame(outi)
-                out = out.append(outi.T)
+                out = pd.concat([out, outi.T], ignore_index=True)
         for i in range(0,6):
             outi=out.iloc[:,0: int(n_hyper+1)]
             out=out.iloc[:,int(n_hyper+1):]
@@ -113,6 +120,7 @@ def DeepMed_cont_cv(y,d,m,x,method,hyper_grid,epochs,batch_size):
                              hyper_k.loc[:,"3"])[1]
             eymx1te = eymx1te_all[0:len(tesample)-1] # ypredict E(Y|M,X,D=1) in test data
             eymx1trte = eymx1te_all[len(tesample):]  # ypredict E(Y|M,X,D=1) in delta sample
+            print(dtrte.shape)
             out4 = ml_cv(eymx1trte[np.where(flatten(dtrte==[0]))],xtrte[np.where(flatten(dtrte==[0])),:][0],method, hyper_grid, t)
             out4 = pd.DataFrame(out4)
     ############ 7. fit E[E(Y|M,X,D=0)|D=1,X] in delta sample
@@ -123,12 +131,14 @@ def DeepMed_cont_cv(y,d,m,x,method,hyper_grid,epochs,batch_size):
 
             eymx0te = eymx0te_all[0:len(tesample)] # ypredict E(Y|M,X,D=0) in test data
             eymx0trte = eymx0te_all[len(tesample):]  # ypredict E(Y|M,X,D=0) in delta sample
+    
             out7 = ml_cv(eymx0trte[np.where(flatten(dtrte==[1]))],xtrte[np.where(flatten(dtrte==[1])),:][0], method,hyper_grid, t)
             
             out7 = pd.DataFrame(out7)
             out7 = pd.concat([out4.T.reset_index(drop = True,inplace=False), out7.T.reset_index(drop = True,inplace=False)], axis = 1)
             
-            out = out.append(out7)
+            out = pd.concat([out, out7], ignore_index=True)
+            #out = out.append(out7)
 
         for i in range(0,2):
             outi=out.iloc[:,0: int(n_hyper+1)]

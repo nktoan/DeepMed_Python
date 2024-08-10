@@ -25,14 +25,14 @@ def make_dnn(train_ybin,input_dim,lambda_value,layers,units):
             units_i = units
         model.add(Dense(units = units_i,activation = 'relu', input_shape = (n_input,),
                         kernel_regularizer = lambda_l1,
-                        kernel_initializer = GlorotUniform(seed=1)))
+                        kernel_initializer = GlorotUniform(seed=1),dtype='float64'))
         model.add(BatchNormalization())
         i+=1
     if train_ybin==1:
-        model.add(Dense(units = 1,activation = 'sigmoid', kernel_initializer = GlorotUniform(seed=1)))
+        model.add(Dense(units = 1,activation = 'sigmoid', kernel_initializer = GlorotUniform(seed=1),dtype='float64'))
         model.compile(optimizer=tf.keras.optimizers.Adam(),loss = 'binary_crossentropy',metrics = ['binary_crossentropy'])
     else:
-        model.add(Dense(units = 1, kernel_initializer = GlorotUniform(seed=1)))
+        model.add(Dense(units = 1, kernel_initializer = GlorotUniform(seed=1),dtype='float64'))
         model.compile(optimizer=tf.keras.optimizers.Adam(),loss = 'mean_squared_error',metrics = ['mean_squared_error'])
                         
         
@@ -40,13 +40,17 @@ def make_dnn(train_ybin,input_dim,lambda_value,layers,units):
 
 def dnn(y, x, ytest, xtest, hyper):
     train_ybin=1*((len(np.unique(y))==2) & (min(y)==0) & (max(y)==1))
-    l1=hyper[0]
+    l1_val=hyper[0]
     layers=int(hyper[1])
     units=int(hyper[2])
     epochs=math.ceil(hyper[3])
     batch_size=int(hyper[4])
     input_dim = x.shape[1]
-    NN = make_dnn(train_ybin,input_dim,l1,layers,units)
+
+    NN = make_dnn(train_ybin,input_dim,l1_val,layers,units)
+    y = y.reshape(-1, 1)  # Reshape to (batch_size, 1)
+    ytest = ytest.reshape(-1, 1)    # Do the same for the test set if applicable
+
     # if train_ybin==1:
     #     NN.compile(optimizer='adam',loss = 'binary_crossentropy',metrics = ['binary_crossentropy'])
     # else:

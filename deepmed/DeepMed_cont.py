@@ -7,7 +7,14 @@ from deepmed.gbm import gbm_out
 from deepmed.rf import rf_out
 from deepmed.lasso import ls_out
 def flatten(l):
-    return [item for sublist in l for item in sublist]
+    # Check if l is a list of lists
+    if isinstance(l, list):
+        return [item for sublist in l for item in sublist]
+    # If l is a numpy array, just return it as-is
+    elif isinstance(l, np.ndarray):
+        return l.ravel()  # or use l.flatten()
+    else:
+        return l  # Return l as is if it's neither a list nor numpy array
 
 def DeepMed_cont(y,d,m,x,method,hyper,trim=0.05):
     if method=='DNN':
